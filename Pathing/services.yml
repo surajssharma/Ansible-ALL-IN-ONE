@@ -1,0 +1,6 @@
+---
+services_to_validate:
+  - sshd
+  - chronyd
+  - crond
+  - nginx
