@@ -1,0 +1,104 @@
+---
+- name: Linux Patch Management
+  hosts: all
+  become: yes
+
+  vars_files:
+    - services.yml
+
+  tasks:
+
+    ############################################################
+    # Check available updates from only RHEL repos
+    ############################################################
+
+    - name: Check available patches
+      shell: |
+        dnf check-update \
+        --disablerepo="*" \
+        --enablerepo="rhel*" || true
+      register: patch_check
+
+    - name: Display available patches
+      debug:
+        var: patch_check.stdout_lines
+
+    ############################################################
+    # Apply patches only from RHEL repos
+    ############################################################
+
+    - name: Apply patches from RHEL repos only
+      shell: |
+        dnf update -y \
+        --disablerepo="*" \
+        --enablerepo="rhel*"
+      register: patching_output
+
+    - name: Display patching result
+      debug:
+        var: patching_output.stdout_lines
+
+    ############################################################
+    # Check reboot requirement
+    ############################################################
+
+    - name: Check if reboot required
+      shell: needs-restarting -r
+      register: reboot_status
+      ignore_errors: yes
+
+    - name: Set reboot fact
+      set_fact:
+        reboot_needed: "{{ reboot_status.rc != 0 }}"
+
+    - name: Show reboot status
+      debug:
+        msg: "Reboot Required = {{ reboot_needed }}"
+
+    ############################################################
+    # Reboot only if required
+    ############################################################
+
+    - name: Reboot server if required
+      reboot:
+        msg: "Server reboot initiated after patching"
+        reboot_timeout: 1200
+      when: reboot_needed
+
+    ############################################################
+    # Wait for system after reboot
+    ############################################################
+
+    - name: Wait for SSH after reboot
+      wait_for_connection:
+        delay: 20
+        timeout: 300
+      when: reboot_needed
+
+    ############################################################
+    # Validate required services
+    ############################################################
+
+    - name: Validate service status
+      systemd:
+        name: "{{ item }}"
+      register: service_status
+      loop: "{{ services_to_validate }}"
+
+    - name: Show service status
+      debug:
+        msg: "Service {{ item.item }} is {{ item.status.ActiveState }}"
+      loop: "{{ service_status.results }}"
+
+    ############################################################
+    # Final validation
+    ############################################################
+
+    - name: Check uptime
+      shell: uptime
+      register: uptime_output
+
+    - name: Show uptime
+      debug:
+        var: uptime_output.stdout
+        var: uptime_output.stdout
