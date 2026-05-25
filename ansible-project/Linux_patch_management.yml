@@ -1,0 +1,10 @@
+---
+- name: Linux Patch Management
+  hosts: linux
+  become: yes
+
+  vars_files:
+    - services.yml
+
+  roles:
+    - linux_patch

@@ -1,0 +1,5 @@
+---
+patch_command: >
+  dnf update -y
+  --disablerepo="*"
+  --enablerepo="{{ rhel_repo_pattern }}"

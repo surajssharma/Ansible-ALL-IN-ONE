@@ -1,0 +1,8 @@
+---
+- name: Apply patches from RHEL repositories only
+  shell: "{{ patch_command }}"
+  register: patching_output
+
+- name: Show patching output
+  debug:
+    var: patching_output.stdout_lines

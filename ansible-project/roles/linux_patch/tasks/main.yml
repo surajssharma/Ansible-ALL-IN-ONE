@@ -1,0 +1,12 @@
+---
+- name: Run prechecks
+  import_tasks: precheck.yml
+
+- name: Run patching
+  import_tasks: patch.yml
+
+- name: Handle reboot
+  import_tasks: reboot.yml
+
+- name: Run validations
+  import_tasks: validation.yml

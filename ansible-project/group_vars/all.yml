@@ -1,0 +1,8 @@
+---
+rhel_repo_pattern: "rhel*"
+
+reboot_timeout_value: 1200
+
+wait_connection_timeout: 300
+
+wait_connection_delay: 20

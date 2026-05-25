@@ -1,0 +1,19 @@
+---
+- name: Validate services
+  systemd:
+    name: "{{ item }}"
+  register: service_status
+  loop: "{{ services_to_validate }}"
+
+- name: Show service status
+  debug:
+    msg: "Service {{ item.item }} is {{ item.status.ActiveState }}"
+  loop: "{{ service_status.results }}"
+
+- name: Check final uptime
+  shell: uptime
+  register: final_uptime
+
+- name: Display final uptime
+  debug:
+    var: final_uptime.stdout

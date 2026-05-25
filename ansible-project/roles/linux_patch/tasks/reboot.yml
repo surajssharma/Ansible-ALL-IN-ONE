@@ -1,0 +1,25 @@
+---
+- name: Check if reboot is required
+  shell: needs-restarting -r
+  register: reboot_status
+  ignore_errors: yes
+
+- name: Set reboot fact
+  set_fact:
+    reboot_needed: "{{ reboot_status.rc != 0 }}"
+
+- name: Display reboot requirement
+  debug:
+    msg: "Reboot Required = {{ reboot_needed }}"
+
+- name: Reboot server only if required
+  reboot:
+    msg: "Server reboot initiated after patching"
+    reboot_timeout: "{{ reboot_timeout_value }}"
+  when: reboot_needed
+
+- name: Wait for SSH after reboot
+  wait_for_connection:
+    delay: "{{ wait_connection_delay }}"
+    timeout: "{{ wait_connection_timeout }}"
+  when: reboot_needed
